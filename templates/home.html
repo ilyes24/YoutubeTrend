@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block content%}
+
+    <div class="container">
+        <div class="row mt-3">
+            <div class="loaderMother" id="loaderMother">
+                <div class="loader"></div>
+            </div>
+            <div class="col-sm-12 DiggerSearch">
+                <form id="digItForm" action="digIn" method="post">
+                    {% csrf_token %}
+                    <div>
+                        <input name="KeyWords" type="text" class="col-sm-9 form-control" placeholder="input keywords here ..." style="display: inline">
+                        <button class="btn btn-primary">Dig it!</button>
+                    </div>
+                    <br>
+
+                    <div class="row">
+                        <div class="col-lg-5 Setting">
+                            <h5>Setting:</h5>
+                            <div class="input-group mb-3">
+                                <input name="MaxResults" class="form-control" type="number" placeholder="Max Results (default 10)">
+                            </div>
+                        </div>
+                        <div class="col-lg-5 RankBy">
+                            <h4>Rank by:</h4>
+                            <div class="row">
+                                <div class="form-check mb-4 ml-3">
+                                    <input class="form-check-input" type="radio" value="date" name="RankType" checked>
+                                    <label class="form-check-label" for="defaultCheck1">
+                                        Rank by upload date.
+                                    </label>
+                                </div>
+                                <div class="form-check mb-4 ml-5">
+                                    <input class="form-check-input" type="radio" value="rating" name="RankType">
+                                    <label class="form-check-label" for="defaultCheck1">
+                                        Rank by rating.
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="form-check mb-4 ml-3">
+                                    <input class="form-check-input" type="radio" value="relevance" name="RankType">
+                                    <label class="form-check-label" for="defaultCheck1">
+                                        Rank by relevance.
+                                    </label>
+                                </div>
+                                <div class="form-check" style="margin-left: 63px">
+                                    <input class="form-check-input" type="radio" value="title" name="RankType">
+                                    <label class="form-check-label" for="defaultCheck1">
+                                        Rank by title.
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="radio" value="viewCount" name="RankType">
+                                <label class="form-check-label" for="defaultCheck1">
+                                    Rank by views.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if result %}
+            <hr>
+            <div class="row m-5">
+                <div class="col-sm-12 Result">
+                    <table id="example" class="display" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Video Name</th>
+                                <th>Duration</th>
+                                <th>Views</th>
+                                <th>Likes</th>
+                                <th>Comments</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for items in result %}
+                                {% for obj in items.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="row">
+                                                <img class="col-lg-6" src="{{ obj.snippet.thumbnails.medium.url }}" width="320" height="180">
+                                                <a class="col-lg-4" href="https://www.youtube.com/watch?v={{ obj.id }}"><p>{{ obj.snippet.title }}</p></a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <script>
+                                                document.write(timestamp("{{ obj.contentDetails.duration }}"));
+                                            </script>
+                                        </td>
+                                        <td>{{ obj.statistics.viewCount }}</td>
+                                        <td>{{ obj.statistics.likeCount }}</td>
+                                        <td>{{ obj.statistics.commentCount }}</td>
+                                        <td><a href="https://www.youtube.com/watch?v={{ obj.id }}">Link</a> </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <hr>
+            <div class="row mb-5">
+                <h5>Still Image Capturing Setting:</h5>
+                <div class="col-lg-12 form-check mb-4">
+                    <label class="form-check-label">
+                        Capture still image of video every
+                    </label>
+                    <input class="col-lg-1" type="number" id="Sec"> seconds.
+                </div>
+                <div class="col-lg-12">
+                    <p class="col-lg-3">Capture image quality</p>
+                    <select class="custom-select col-lg-3" id="qualite">
+                        <option selected value="worst">Worst</option>
+                        <option value="best">Best</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="row mb-5">
+                <h5 class="col-lg-12">Outout Data Setting:</h5>
+                <div class="row form-group mb-4">
+                    <p class="col-lg-3 mt-1">Title Caption</p>
+                    <input class="col-lg-3 form-control" type="date" name="Date" id="Date" placeholder="Date">
+
+                    <p class="col-lg-3 mt-1">Video Titel Name</p>
+                    <input class="col-lg-3 form-control" type="text" id="prefix" placeholder="prefix" name="prefix">
+                </div>
+            </div>
+            <hr>
+            <div class="row mb-5">
+                <button class="btn btn-primary" onclick="Download()">Download</button>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src= "{% static 'js/main.js' %}"></script>
+{% endblock %}
