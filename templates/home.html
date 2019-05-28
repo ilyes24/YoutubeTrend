@@ -12,6 +12,7 @@
                     {% csrf_token %}
                     <div>
                         <input name="KeyWords" type="text" class="col-sm-9 form-control" placeholder="input keywords here ..." style="display: inline">
+                        <input name="ApiKey" type="text" class="col-sm-9 form-control" placeholder="input your api key here ..." style="display: inline">
                         <button class="btn btn-primary">Dig it!</button>
                     </div>
                     <br>
@@ -132,6 +133,7 @@
 
                     <p class="col-lg-3 mt-1">Video Titel Name</p>
                     <input class="col-lg-3 form-control" type="text" id="prefix" placeholder="prefix" name="prefix">
+                     <input type="hidden" id="operation_id" name="operation_id" value="{{ operation_id }}">
                 </div>
             </div>
             <hr>
