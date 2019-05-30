@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Searchs History| {{ block.super }}{% endblock %}
+
+{% block content%}
+<div class="container">
+
+<h1>Searchs History</h1>
+<br>
+<div class="row">
+        <div class="col-xl-3 col-sm-6 mb-3">
+          <div class="card text-white bg-primary o-hidden h-100">
+            <div class="card-body">
+              <div class="card-body-icon">
+                <i class="fa fa-fw fa-plus-circle"></i>
+              </div>
+              <div class="mr-5">New Search</div>
+            </div>
+            <a class="card-footer text-white clearfix small z-1" href="{% url 'Home' %}">
+              <span class="float-left">Go</span>
+              <span class="float-right">
+                <i class="fa fa-angle-right"></i>
+              </span>
+            </a>
+          </div>
+        </div>
+
+
+
+      </div>
+<br>
+<h1> History : </h1>
+<br>
+
+ <script class="init">
+    $(document).ready(function() {
+        // Setup - add a text input to each footer cell
+    $('#dataTable thead th').each( function () {
+        var title = $(this).text();
+        $(this).html( '<h6><strong>'+title+' </strong></h6><input class="w-100" type="text" placeholder="Search '+title+'" />' );
+    } );
+     var table = $('#dataTable').DataTable();
+     table.columns.adjust().draw();
+    table.columns().every( function () {
+        var that = this;
+        $( 'input', this.header() ).on( 'keyup change', function () {
+            if ( that.search() !== this.value ) {
+                that
+                    .search( this.value )
+                    .draw();
+            }
+        } );
+    } );
+} );
+    </script>
+
+<div class="card-body">
+    <div class="table-responsive">
+    <table class="table table-bordered" id="dataTable" style="width: 100%;" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+
+            <th>ID</th>
+            <th>KeyWord</th>
+            <th>API KEY</th>
+              <th>Rank by</th>
+              <th>Date</th>
+            <th>Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for operation in operation_list %}
+
+          <tr>
+
+            <td>{{ operation.id }}</td>
+            <td>{{ operation.keyword }}</td>
+            <td>{{ operation.api_key }}</td>
+              <td>{{ operation.rank_by }}</td>
+              <td>{{ operation.created_at }}</td>
+              <td><a class="btn-dark btn-sm " href="#">Show</a>
+                  </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+    <tfoot>
+          <tr>
+
+            <th>ID</th>
+            <th>KeyWord</th>
+            <th>API KEY</th>
+              <th>Rank by</th>
+              <th>Date</th>
+            <th>Operations</th>
+          </tr>
+        </tfoot>
+      </table>
+
+    </div>
+   </div>
+
+
+</div>
+
+
+{% endblock %}

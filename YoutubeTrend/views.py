@@ -2,7 +2,9 @@ import os
 import time
 import xml.etree.ElementTree as ET
 import isodate
-from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from googleapiclient.discovery import build
 
@@ -10,6 +12,8 @@ from googleapiclient.discovery import build
 # The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
 # the OAuth 2.0 information for this application, including its client_id and
 # client_secret.
+from YoutubeTrend.models import Operation, Video
+
 CLIENT_SECRETS_FILE = "client_secret.json"
 
 # This OAuth 2.0 access scope allows for full read/write access to the
@@ -20,11 +24,11 @@ API_VERSION = 'v3'
 DEVELOPER_KEY = "AIzaSyA-6hhIeoI-kyvWmFPGwjrKaYrgGS3D-yo"
 
 
-def get_authenticated_service():
-    return build(API_SERVICE_NAME, API_VERSION, developerKey=DEVELOPER_KEY)
+def get_authenticated_service(developerKey):
+    return build(API_SERVICE_NAME, API_VERSION, developerKey=developerKey)
 
 
-def main_search(service, q, max_results, order, token, location, location_radius):
+def main_search(service, q, max_results, order, token, location, location_radius,developerKey):
     remain = 0
     if max_results > 50:
         remain = max_results-50
@@ -38,7 +42,7 @@ def main_search(service, q, max_results, order, token, location, location_radius
         maxResults=max_results,
         location=location,
         locationRadius=location_radius,
-        key=DEVELOPER_KEY
+        key=developerKey
 
     ).execute()
 
@@ -60,7 +64,7 @@ def main_search(service, q, max_results, order, token, location, location_radius
             maxResults=remain,
             location=location,
             locationRadius=location_radius,
-            key=DEVELOPER_KEY
+            key=developerKey
         ).execute()
         for search_result in search_response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
@@ -97,9 +101,9 @@ def screenshotlist(results):
         screenshotvideo("https://www.youtube.com/watch?v="+str(result['items'][0]['id']), 25, result['items'][0]['id'], result['items'][0]['contentDetails']['duration'])
 
 
-def searchlist(keyword, max_results, order):
-    service = get_authenticated_service()
-    resultset = main_search(service, keyword, max_results=max_results, order=order, token=None, location=None, location_radius=None)
+def searchlist(keyword, max_results, order,developerKey):
+    service = get_authenticated_service(developerKey)
+    resultset = main_search(service, keyword, max_results=max_results, order=order, token=None, location=None, location_radius=None,developerKey=developerKey)
     return resultset
 
 
@@ -132,15 +136,24 @@ def dig_it(request):
         keyword = form['KeyWords']
         max_results = form['MaxResults']
         order = form['RankType']
+        developerKey=form['ApiKey']
         if max_results == "":
             max_results = 10
-        result = searchlist(keyword, int(max_results), order)
-        return render(request, 'home.html', {'result': result})
+        result = searchlist(keyword, int(max_results), order,developerKey)
+        operation = Operation(
+            keyword=keyword,
+            api_key=developerKey,
+            rank_by=order,
+            created_by=request.user
+        )
+        operation.save()
+        return render(request, 'home.html', {'result': result,'operation_id':operation.id})
 
 
 def saveFile(request):
     if request.method == 'POST':
         form = request.POST
+        operation_id=form.get('operation_id')
         videosUrls = form.getlist('videosUrls[]')
         durationList = form.getlist('durationList[]')
         likesList = form.getlist('likesList[]')
@@ -150,7 +163,7 @@ def saveFile(request):
         titleDate = form.get('titelDate')
         titlePrefix = form.get('titelPrefix')
         quality = form.get('quality')
-
+        operation = get_object_or_404(Operation, id=operation_id)
         duration_list = []
         for element in durationList:
             pt_index = element.index('PT')
@@ -161,6 +174,17 @@ def saveFile(request):
         os.mkdir(title, 0o755)
         i = 0
         for element in videosUrls:
+            video = Video(
+                video_id=element[element.index('?v=') + 3:],
+                video_url=element,
+                title=title,
+                duration=durationList[i],
+                views=viewsList[i],
+                likes=likesList[i],
+                comments=commentsList[i],
+                related_to=operation
+            )
+            video.save()
             screenshotvideo(element,
                             stillImageValue,
                             element[element.index('?v=')+3:],
@@ -171,3 +195,22 @@ def saveFile(request):
                             viewsList[i],
                             commentsList[i])
             i = i+1
+    return HttpResponseRedirect(reverse('searchs', kwargs={}))
+
+
+def searchshistory(request):
+    operations = Operation.objects.all()
+    ctx = {'operation_list': operations}
+
+    return render(request, 'searches.html', context=ctx)
+
+
+def showOperation(request,op):
+    operation=Operation.objects.get(id=op)
+    videos=Video.objects.filter(related_to=operation)
+    videos_aug=[]
+    for video in videos:
+        pass
+        # videos_aug.append({'video':video,'images':})
+
+    return None

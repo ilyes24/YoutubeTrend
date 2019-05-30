@@ -78,6 +78,7 @@ function Download() {
     let titelDate = $('#Date').val();
     let titlePrefix = $('#prefix').val();
     let quality = $('#qualite').val();
+    let operation_id = $('#operation_id').val();
     $.ajax({
         url : 'savefile',
         type : 'POST',
@@ -91,7 +92,8 @@ function Download() {
             'stillImageValue' : stillImageValue,
             'titelDate' : titelDate,
             'titelPrefix' : titlePrefix,
-            'quality' : quality
+            'quality' : quality,
+            'operation_id':operation_id
         },
         beforeSend: function() {
             var loader = document.getElementById('loaderMother');

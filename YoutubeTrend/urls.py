@@ -6,6 +6,8 @@ from YoutubeTrend import views
 
 urlpatterns = [
     path('digIn', csrf_exempt(views.dig_it), name='DigIn'),
-    path('savefile', csrf_exempt(views.saveFile), name='saveFile')
+    path('savefile', csrf_exempt(views.saveFile), name='saveFile'),
+    path('searchs', views.searchshistory, name='searchs'),
+    path('show/<op>', views.showOperation, name='showoperation'),
 
 ]
